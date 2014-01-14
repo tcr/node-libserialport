@@ -6,6 +6,7 @@
         'defines': [ 'DEBUG', '_DEBUG' ],
         'msvs_settings': {
           'VCCLCompilerTool': {
+            'CompileAs': 'CompileAsCpp',
             'RuntimeLibrary': 0, # shared debug
           },
         },
