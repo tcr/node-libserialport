@@ -42,7 +42,17 @@
     {
       'target_name': 'serialport',
       'product_prefix': 'lib',
-      'type': 'shared_library'
+      'type': 'shared_library',
+      'sources': [
+        'serialport.c',
+      ],
+      'conditions': [
+        ['OS=="linux"', {
+          'sources': [
+            'linux_termios.c'
+          ],
+        }]
+      ],
     }
   ]
 }
