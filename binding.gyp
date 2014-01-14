@@ -32,6 +32,7 @@
     'conditions': [
       ['OS=="win"', {
         'defines': [
+          '_WIN32'
         ]
       }]
     ],
