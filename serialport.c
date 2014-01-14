@@ -28,7 +28,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdarg.h>
-#ifdef _WIN32
+#ifdef WIN32
 #include <process.h>
 #include <io.h>
 #include <windows.h>
@@ -58,6 +58,10 @@
 #endif
 #include "linux_termios.h"
 
+#ifdef WIN32
+#define __FUNCTION__ __func__
+#endif
+
 /* TCGETX/TCSETX is not available everywhere. */
 #if defined(TCGETX) && defined(TCSETX) && defined(HAVE_TERMIOX)
 #define USE_TERMIOX
@@ -81,7 +85,7 @@
 
 struct sp_port {
 	char *name;
-#ifdef _WIN32
+#ifdef WIN32
 	HANDLE hdl;
 	COMMTIMEOUTS timeouts;
 	OVERLAPPED write_ovl;
@@ -108,7 +112,7 @@ struct sp_port_config {
 };
 
 struct port_data {
-#ifdef _WIN32
+#ifdef WIN32
 	DCB dcb;
 #else
 	struct termios term;
@@ -121,14 +125,14 @@ struct port_data {
 #endif
 };
 
-#ifdef _WIN32
+#ifdef WIN32
 typedef HANDLE event_handle;
 #else
 typedef int event_handle;
 #endif
 
 /* Standard baud rates. */
-#ifdef _WIN32
+#ifdef WIN32
 #define BAUD_TYPE DWORD
 #define BAUD(n) {CBR_##n, n}
 #else
@@ -142,7 +146,7 @@ struct std_baudrate {
 };
 
 const struct std_baudrate std_baudrates[] = {
-#ifdef _WIN32
+#ifdef WIN32
 	/*
 	 * The baudrates 50/75/134/150/200/1800/230400/460800 do not seem to
 	 * have documented CBR_* macros.
@@ -195,7 +199,7 @@ void (*sp_debug_handler)(const char *format, ...) = sp_default_debug_handler;
 } while (0)
 #define SET_ERROR(val, err, msg) do { DEBUG_ERROR(err, msg); val = err; } while (0)
 #define SET_FAIL(val, msg) do { DEBUG_FAIL(msg); val = SP_ERR_FAIL; } while (0)
-#define TRACE(fmt, ...) DEBUG("%s(" fmt ") called", __func____, ##__VA_ARGS__)
+#define TRACE(fmt, ...) DEBUG("%s(" fmt ") called", __func__, ##__VA_ARGS__)
 
 #define TRY(x) do { int ret = x; if (ret != SP_OK) RETURN_CODEVAL(ret); } while (0)
 
@@ -235,7 +239,7 @@ enum sp_return sp_get_port_by_name(const char *portname, struct sp_port **port_p
 
 	memcpy(port->name, portname, len);
 
-#ifdef _WIN32
+#ifdef WIN32
 	port->hdl = INVALID_HANDLE_VALUE;
 #else
 	port->fd = -1;
@@ -263,7 +267,7 @@ enum sp_return sp_get_port_handle(const struct sp_port *port, void *result_ptr)
 	if (!port)
 		RETURN_ERROR(SP_ERR_ARG, "Null port");
 
-#ifdef _WIN32
+#ifdef WIN32
 	HANDLE *handle_ptr = result_ptr;
 	*handle_ptr = port->hdl;
 #else
@@ -349,7 +353,7 @@ enum sp_return sp_list_ports(struct sp_port ***list_ptr)
 
 	list[0] = NULL;
 
-#ifdef _WIN32
+#ifdef WIN32
 	HKEY key;
 	TCHAR *value, *data;
 	DWORD max_value_len, max_data_size, max_data_len;
@@ -591,7 +595,7 @@ void sp_free_port_list(struct sp_port **list)
 	if (port->name == NULL) \
 		RETURN_ERROR(SP_ERR_ARG, "Null port name"); \
 } while (0)
-#ifdef _WIN32
+#ifdef WIN32
 #define CHECK_PORT_HANDLE() do { \
 	if (port->hdl == INVALID_HANDLE_VALUE) \
 		RETURN_ERROR(SP_ERR_ARG, "Invalid port handle"); \
@@ -622,7 +626,7 @@ enum sp_return sp_open(struct sp_port *port, enum sp_mode flags)
 
 	DEBUG("Opening port %s", port->name);
 
-#ifdef _WIN32
+#ifdef WIN32
 	DWORD desired_access = 0, flags_and_attributes = 0, errors;
 	char *escaped_port_name;
 	COMSTAT status;
@@ -713,7 +717,7 @@ enum sp_return sp_open(struct sp_port *port, enum sp_mode flags)
 	}
 
 	/* Set sane port settings. */
-#ifdef _WIN32
+#ifdef WIN32
 	data.dcb.fBinary = TRUE;
 	data.dcb.fDsrSensitivity = FALSE;
 	data.dcb.fErrorChar = FALSE;
@@ -758,7 +762,7 @@ enum sp_return sp_open(struct sp_port *port, enum sp_mode flags)
 	data.term.c_cflag |= (CLOCAL | CREAD | HUPCL);
 #endif
 
-#ifdef _WIN32
+#ifdef WIN32
 	if (ClearCommError(port->hdl, &errors, &status) == 0)
 		RETURN_FAIL("ClearCommError() failed");
 #endif
@@ -781,7 +785,7 @@ enum sp_return sp_close(struct sp_port *port)
 
 	DEBUG("Closing port %s", port->name);
 
-#ifdef _WIN32
+#ifdef WIN32
 	/* Returns non-zero upon success, 0 upon failure. */
 	if (CloseHandle(port->hdl) == 0)
 		RETURN_FAIL("port CloseHandle() failed");
@@ -820,7 +824,7 @@ enum sp_return sp_flush(struct sp_port *port, enum sp_buffer buffers)
 
 	DEBUG("Flushing %s buffers on port %s", buffer_names[buffers], port->name);
 
-#ifdef _WIN32
+#ifdef WIN32
 	DWORD flags = 0;
 	if (buffers & SP_BUF_INPUT)
 		flags |= PURGE_RXCLEAR;
@@ -854,7 +858,7 @@ enum sp_return sp_drain(struct sp_port *port)
 
 	DEBUG("Draining port %s", port->name);
 
-#ifdef _WIN32
+#ifdef WIN32
 	/* Returns non-zero upon success, 0 upon failure. */
 	if (FlushFileBuffers(port->hdl) == 0)
 		RETURN_FAIL("FlushFileBuffers() failed");
@@ -899,7 +903,7 @@ enum sp_return sp_blocking_write(struct sp_port *port, const void *buf, size_t c
 	if (count == 0)
 		RETURN_VALUE("0", 0);
 
-#ifdef _WIN32
+#ifdef WIN32
 	DWORD bytes_written = 0;
 	BOOL result;
 
@@ -1010,7 +1014,7 @@ enum sp_return sp_nonblocking_write(struct sp_port *port, const void *buf, size_
 	if (count == 0)
 		RETURN_VALUE("0", 0);
 
-#ifdef _WIN32
+#ifdef WIN32
 	DWORD written = 0;
 	BYTE *ptr = (BYTE *) buf;
 
@@ -1092,7 +1096,7 @@ enum sp_return sp_blocking_read(struct sp_port *port, void *buf, size_t count, u
 	if (count == 0)
 		RETURN_VALUE("0", 0);
 
-#ifdef _WIN32
+#ifdef WIN32
 	DWORD bytes_read = 0;
 
 	/* Set timeout. */
@@ -1197,7 +1201,7 @@ enum sp_return sp_nonblocking_read(struct sp_port *port, void *buf, size_t count
 
 	DEBUG("Reading up to %d bytes from port %s", count, port->name);
 
-#ifdef _WIN32
+#ifdef WIN32
 	DWORD bytes_read;
 
 	/* Set timeout. */
@@ -1247,7 +1251,7 @@ enum sp_return sp_input_waiting(struct sp_port *port)
 
 	DEBUG("Checking input bytes waiting on port %s", port->name);
 
-#ifdef _WIN32
+#ifdef WIN32
 	DWORD errors;
 	COMSTAT comstat;
 
@@ -1270,7 +1274,7 @@ enum sp_return sp_output_waiting(struct sp_port *port)
 
 	DEBUG("Checking output bytes waiting on port %s", port->name);
 
-#ifdef _WIN32
+#ifdef WIN32
 	DWORD errors;
 	COMSTAT comstat;
 
@@ -1350,7 +1354,7 @@ enum sp_return sp_add_port_events(struct sp_event_set *event_set,
 	if (!mask)
 		RETURN_OK();
 
-#ifdef _WIN32
+#ifdef WIN32
 	enum sp_event handle_mask;
 	if ((handle_mask = mask & SP_EVENT_TX_READY))
 		TRY(add_handle(event_set, port->write_ovl.hEvent, handle_mask));
@@ -1391,7 +1395,7 @@ enum sp_return sp_wait(struct sp_event_set *event_set, unsigned int timeout)
 	if (!event_set)
 		RETURN_ERROR(SP_ERR_ARG, "Null event set");
 
-#ifdef _WIN32
+#ifdef WIN32
 	if (WaitForMultipleObjects(event_set->count, event_set->handles, FALSE,
 			timeout ? timeout : INFINITE) == WAIT_FAILED)
 		RETURN_FAIL("WaitForMultipleObjects() failed");
@@ -1586,7 +1590,7 @@ static enum sp_return get_config(struct sp_port *port, struct port_data *data,
 
 	DEBUG("Getting configuration for port %s", port->name);
 
-#ifdef _WIN32
+#ifdef WIN32
 	if (!GetCommState(port->hdl, &data->dcb))
 		RETURN_FAIL("GetCommState() failed");
 
@@ -1681,7 +1685,7 @@ static enum sp_return get_config(struct sp_port *port, struct port_data *data,
 			config->xon_xoff = SP_XONXOFF_DISABLED;
 	}
 
-#else // !_WIN32
+#else // !WIN32
 
 	if (tcgetattr(port->fd, &data->term) < 0)
 		RETURN_FAIL("tcgetattr() failed");
@@ -1803,7 +1807,7 @@ static enum sp_return set_config(struct sp_port *port, struct port_data *data,
 
 	DEBUG("Setting configuration for port %s", port->name);
 
-#ifdef _WIN32
+#ifdef WIN32
 	if (config->baudrate >= 0) {
 		for (i = 0; i < NUM_STD_BAUDRATES; i++) {
 			if (config->baudrate == std_baudrates[i].value) {
@@ -1939,7 +1943,7 @@ static enum sp_return set_config(struct sp_port *port, struct port_data *data,
 	if (!SetCommState(port->hdl, &data->dcb))
 		RETURN_FAIL("SetCommState() failed");
 
-#else /* !_WIN32 */
+#else /* !WIN32 */
 
 	int controlbits;
 
@@ -2168,7 +2172,7 @@ static enum sp_return set_config(struct sp_port *port, struct port_data *data,
 #endif
 #endif
 
-#endif /* !_WIN32 */
+#endif /* !WIN32 */
 
 	RETURN_OK();
 }
@@ -2347,7 +2351,7 @@ enum sp_return sp_get_signals(struct sp_port *port, enum sp_signal *signals)
 	DEBUG("Getting control signals for port %s", port->name);
 
 	*signals = 0;
-#ifdef _WIN32
+#ifdef WIN32
 	DWORD bits;
 	if (GetCommModemStatus(port->hdl, &bits) == 0)
 		RETURN_FAIL("GetCommModemStatus() failed");
@@ -2380,7 +2384,7 @@ enum sp_return sp_start_break(struct sp_port *port)
 	TRACE("%p", port);
 
 	CHECK_OPEN_PORT();
-#ifdef _WIN32
+#ifdef WIN32
 	if (SetCommBreak(port->hdl) == 0)
 		RETURN_FAIL("SetCommBreak() failed");
 #else
@@ -2396,7 +2400,7 @@ enum sp_return sp_end_break(struct sp_port *port)
 	TRACE("%p", port);
 
 	CHECK_OPEN_PORT();
-#ifdef _WIN32
+#ifdef WIN32
 	if (ClearCommBreak(port->hdl) == 0)
 		RETURN_FAIL("ClearCommBreak() failed");
 #else
@@ -2410,7 +2414,7 @@ enum sp_return sp_end_break(struct sp_port *port)
 int sp_last_error_code(void)
 {
 	TRACE("");
-#ifdef _WIN32
+#ifdef WIN32
 	RETURN_VALUE("%d", GetLastError());
 #else
 	RETURN_VALUE("%d", errno);
@@ -2421,7 +2425,7 @@ char *sp_last_error_message(void)
 {
 	TRACE("");
 
-#ifdef _WIN32
+#ifdef WIN32
 	LPVOID message;
 	DWORD error = GetLastError();
 
@@ -2445,7 +2449,7 @@ void sp_free_error_message(char *message)
 {
 	TRACE("%s", message);
 
-#ifdef _WIN32
+#ifdef WIN32
 	LocalFree(message);
 #else
 	(void)message;
