@@ -2197,12 +2197,12 @@ enum sp_return sp_new_config(struct sp_port_config **config_ptr)
 
 	config->baudrate = -1;
 	config->bits = -1;
-	config->parity = (sp_parity) -1;
+	config->parity = (enum sp_parity) -1;
 	config->stopbits = -1;
-	config->rts = (sp_rts) -1;
-	config->cts = (sp_cts) -1;
-	config->dtr = (sp_dtr) -1;
-	config->dsr = (sp_dsr) -1;
+	config->rts = (enum sp_rts) -1;
+	config->cts = (enum sp_cts) -1;
+	config->dtr = (enum sp_dtr) -1;
+	config->dsr = (enum sp_dsr) -1;
 
 	*config_ptr = config;
 
@@ -2354,7 +2354,7 @@ enum sp_return sp_get_signals(struct sp_port *port, enum sp_signal *signals)
 
 	DEBUG("Getting control signals for port %s", port->name);
 
-	*signals = (sp_signal) 0;
+	*signals = (enum sp_signal) 0;
 #ifdef _WIN32
 	DWORD bits;
 	if (GetCommModemStatus(port->hdl, &bits) == 0)
