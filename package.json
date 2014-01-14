@@ -16,5 +16,11 @@
   "gypfile": true,
   "bugs": {
     "url": "https://github.com/martinling/libserialport/issues"
+  },
+  "dependencies": {
+    "ref-array": "0.0.3",
+    "ref-struct": "0.0.5",
+    "ref": "~0.1.3",
+    "ffi": "~1.2.6"
   }
 }
