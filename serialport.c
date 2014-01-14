@@ -58,8 +58,8 @@
 #endif
 #include "linux_termios.h"
 
+#include "DADAASDASASD.H"
 #ifdef _WIN32
- #include "DADAASDASASD.H"
 #define __FUNCTION__ __func__
 #endif
 
