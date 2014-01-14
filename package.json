@@ -4,8 +4,7 @@
   "description": "------------------------------------------------------------------------------- libserialport: cross-platform library for accessing serial ports -------------------------------------------------------------------------------",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "install": "node-gyp rebuild"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
