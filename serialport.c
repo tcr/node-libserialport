@@ -58,8 +58,8 @@
 #endif
 #include "linux_termios.h"
 
-#ifndef WIN32
-#define __FUNCTION__  __func__ 
+#ifdef WIN32
+#define __func__  __FUNCTION__ 
 #endif
 
 /* TCGETX/TCSETX is not available everywhere. */
@@ -172,14 +172,14 @@ void (*sp_debug_handler)(const char *format, ...) = sp_default_debug_handler;
 
 /* Debug output macros. */
 #define DEBUG(fmt, ...) do { if (sp_debug_handler) sp_debug_handler(fmt ".\n", ##__VA_ARGS__); } while (0)
-#define DEBUG_ERROR(err, msg) DEBUG("%s returning " #err ": " msg, __FUNCTION__)
+#define DEBUG_ERROR(err, msg) DEBUG("%s returning " #err ": " msg, __func__)
 #define DEBUG_FAIL(msg) do { \
 	char *errmsg = sp_last_error_message(); \
-	DEBUG("%s returning SP_ERR_FAIL: " msg ": %s", __FUNCTION__, errmsg); \
+	DEBUG("%s returning SP_ERR_FAIL: " msg ": %s", __func__, errmsg); \
 	sp_free_error_message(errmsg); \
 } while (0);
-#define RETURN() do { DEBUG("%s returning", __FUNCTION__); return; } while(0)
-#define RETURN_CODE(x) do { DEBUG("%s returning " #x, __FUNCTION__); return x; } while (0)
+#define RETURN() do { DEBUG("%s returning", __func__); return; } while(0)
+#define RETURN_CODE(x) do { DEBUG("%s returning " #x, __func__); return x; } while (0)
 #define RETURN_CODEVAL(x) do { \
 	switch (x) { \
 		case SP_OK: RETURN_CODE(SP_OK); \
@@ -195,7 +195,7 @@ void (*sp_debug_handler)(const char *format, ...) = sp_default_debug_handler;
 #ifndef WIN32
 #define RETURN_VALUE(fmt, x) do { \
 	typeof(x) _x = x; \
-	DEBUG("%s returning " fmt, __FUNCTION__, _x); \
+	DEBUG("%s returning " fmt, __func__, _x); \
 	return _x; \
 } while (0)
 #else
@@ -203,7 +203,7 @@ void (*sp_debug_handler)(const char *format, ...) = sp_default_debug_handler;
 #endif
 #define SET_ERROR(val, err, msg) do { DEBUG_ERROR(err, msg); val = err; } while (0)
 #define SET_FAIL(val, msg) do { DEBUG_FAIL(msg); val = SP_ERR_FAIL; } while (0)
-#define TRACE(fmt, ...) DEBUG("%s(" fmt ") called", __FUNCTION__, ##__VA_ARGS__)
+#define TRACE(fmt, ...) DEBUG("%s(" fmt ") called", __func__, ##__VA_ARGS__)
 
 #define TRY(x) do { int ret = x; if (ret != SP_OK) RETURN_CODEVAL(ret); } while (0)
 
