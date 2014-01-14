@@ -58,6 +58,10 @@
 #endif
 #include "linux_termios.h"
 
+#ifdef _WIN32
+#define __FUNCTION__ __func__
+#endif
+
 /* TCGETX/TCSETX is not available everywhere. */
 #if defined(TCGETX) && defined(TCSETX) && defined(HAVE_TERMIOX)
 #define USE_TERMIOX
