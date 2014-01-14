@@ -321,7 +321,7 @@ API void sp_free_port(struct sp_port *port)
 	RETURN();
 }
 
-API static struct sp_port **list_append(struct sp_port **list, const char *portname)
+static struct sp_port **list_append(struct sp_port **list, const char *portname)
 {
 	void *tmp;
 	unsigned int count;
@@ -1314,7 +1314,7 @@ API enum sp_return sp_new_event_set(struct sp_event_set **result_ptr)
 	RETURN_OK();
 }
 
-API static enum sp_return add_handle(struct sp_event_set *event_set,
+static enum sp_return add_handle(struct sp_event_set *event_set,
 		event_handle handle, enum sp_event mask)
 {
 	void *new_handles;
