@@ -231,12 +231,12 @@ enum sp_return sp_get_port_by_name(const char *portname, struct sp_port **port_p
 
 	DEBUG("Building structure for port %s", portname);
 
-	if (!(port = malloc(sizeof(struct sp_port))))
+	if (!(port = (struct sp_port *) malloc(sizeof(struct sp_port))))
 		RETURN_ERROR(SP_ERR_MEM, "Port structure malloc failed");
 
 	len = strlen(portname) + 1;
 
-	if (!(port->name = malloc(len))) {
+	if (!(port->name = (char *) malloc(len))) {
 		free(port);
 		RETURN_ERROR(SP_ERR_MEM, "Port name malloc failed");
 	}
@@ -272,7 +272,7 @@ enum sp_return sp_get_port_handle(const struct sp_port *port, void *result_ptr)
 		RETURN_ERROR(SP_ERR_ARG, "Null port");
 
 #ifdef _WIN32
-	HANDLE *handle_ptr = result_ptr;
+	HANDLE *handle_ptr = (HANDLE *) result_ptr;
 	*handle_ptr = port->hdl;
 #else
 	int *fd_ptr = result_ptr;
@@ -329,7 +329,7 @@ static struct sp_port **list_append(struct sp_port **list, const char *portname)
 	for (count = 0; list[count]; count++);
 	if (!(tmp = realloc(list, sizeof(struct sp_port *) * (count + 2))))
 		goto fail;
-	list = tmp;
+	list = (struct sp_port **) tmp;
 	if (sp_get_port_by_name(portname, &list[count]) != SP_OK)
 		goto fail;
 	list[count + 1] = NULL;
@@ -352,7 +352,7 @@ enum sp_return sp_list_ports(struct sp_port ***list_ptr)
 
 	DEBUG("Enumerating ports");
 
-	if (!(list = malloc(sizeof(struct sp_port **))))
+	if (!(list = (struct sp_port **) malloc(sizeof(struct sp_port **))))
 		RETURN_ERROR(SP_ERR_MEM, "Port list malloc failed");
 
 	list[0] = NULL;
@@ -381,11 +381,11 @@ enum sp_return sp_list_ports(struct sp_port ***list_ptr)
 		goto out_close;
 	}
 	max_data_len = max_data_size / sizeof(TCHAR);
-	if (!(value = malloc((max_value_len + 1) * sizeof(TCHAR)))) {
+	if (!(value = (TCHAR *) malloc((max_value_len + 1) * sizeof(TCHAR)))) {
 		SET_ERROR(ret, SP_ERR_MEM, "registry value malloc failed");
 		goto out_close;
 	}
-	if (!(data = malloc((max_data_len + 1) * sizeof(TCHAR)))) {
+	if (!(data = (THCAR *) malloc((max_data_len + 1) * sizeof(TCHAR)))) {
 		SET_ERROR(ret, SP_ERR_MEM, "registry data malloc failed");
 		goto out_free_value;
 	}
@@ -403,7 +403,7 @@ enum sp_return sp_list_ports(struct sp_port ***list_ptr)
 #else
 		name_len = data_len + 1;
 #endif
-		if (!(name = malloc(name_len))) {
+		if (!(name = (char *) malloc(name_len))) {
 			SET_ERROR(ret, SP_ERR_MEM, "registry port name malloc failed");
 			goto out;
 		}
@@ -569,7 +569,7 @@ out:
 		if (list)
 			sp_free_port_list(list);
 		*list_ptr = NULL;
-		return ret;
+		return (enum sp_return) ret;
 	}
 }
 
@@ -636,7 +636,7 @@ enum sp_return sp_open(struct sp_port *port, enum sp_mode flags)
 	COMSTAT status;
 
 	/* Prefix port name with '\\.\' to work with ports above COM9. */
-	if (!(escaped_port_name = malloc(strlen(port->name + 5))))
+	if (!(escaped_port_name = (char *) malloc(strlen(port->name + 5))))
 		RETURN_ERROR(SP_ERR_MEM, "Escaped port name malloc failed");
 	sprintf(escaped_port_name, "\\\\.\\%s", port->name);
 
@@ -905,7 +905,7 @@ enum sp_return sp_blocking_write(struct sp_port *port, const void *buf, size_t c
 		DEBUG("Writing %d bytes to port %s, no timeout", count, port->name);
 
 	if (count == 0)
-		RETURN_VALUE("0", 0);
+		RETURN_VALUE("0", (enum sp_return) 0);
 
 #ifdef _WIN32
 	DWORD bytes_written = 0;
@@ -932,13 +932,13 @@ enum sp_return sp_blocking_write(struct sp_port *port, const void *buf, size_t c
 			DEBUG("Waiting for write to complete");
 			GetOverlappedResult(port->hdl, &port->write_ovl, &bytes_written, TRUE);
 			DEBUG("Write completed, %d/%d bytes written", bytes_written, count);
-			RETURN_VALUE("%d", bytes_written);
+			RETURN_VALUE("%d", (sp_return) bytes_written);
 		} else {
 			RETURN_FAIL("WriteFile() failed");
 		}
 	} else {
 		DEBUG("Write completed immediately");
-		RETURN_VALUE("%d", count);
+		RETURN_VALUE("%d", (sp_return) count);
 	}
 #else
 	size_t bytes_written = 0;
@@ -1016,7 +1016,7 @@ enum sp_return sp_nonblocking_write(struct sp_port *port, const void *buf, size_
 	DEBUG("Writing up to %d bytes to port %s", count, port->name);
 
 	if (count == 0)
-		RETURN_VALUE("0", 0);
+		RETURN_VALUE("0", (enum sp_return) 0);
 
 #ifdef _WIN32
 	DWORD written = 0;
@@ -1030,7 +1030,7 @@ enum sp_return sp_nonblocking_write(struct sp_port *port, const void *buf, size_
 		} else {
 			DEBUG("Previous write not complete");
 			/* Can't take a new write until the previous one finishes. */
-			RETURN_VALUE("0", 0);
+			RETURN_VALUE("0", (enum sp_return) 0);
 		}
 	}
 
@@ -1057,7 +1057,7 @@ enum sp_return sp_nonblocking_write(struct sp_port *port, const void *buf, size_
 				} else {
 					DEBUG("Asynchronous write running");
 					port->writing = 1;
-					RETURN_VALUE("%d", ++written);
+					RETURN_VALUE("%d", (enum sp_return) ++written);
 				}
 			} else {
 				/* Actual failure of some kind. */
@@ -1071,7 +1071,7 @@ enum sp_return sp_nonblocking_write(struct sp_port *port, const void *buf, size_
 
 	DEBUG("All bytes written immediately");
 
-	RETURN_VALUE("%d", written);
+	RETURN_VALUE("%d", (enum sp_return) written);
 #else
 	/* Returns the number of bytes written, or -1 upon failure. */
 	ssize_t written = write(port->fd, buf, count);
@@ -1098,7 +1098,7 @@ enum sp_return sp_blocking_read(struct sp_port *port, void *buf, size_t count, u
 		DEBUG("Reading %d bytes from port %s, no timeout", count, port->name);
 
 	if (count == 0)
-		RETURN_VALUE("0", 0);
+		RETURN_VALUE("0", (enum sp_return) 0);
 
 #ifdef _WIN32
 	DWORD bytes_read = 0;
@@ -1129,7 +1129,7 @@ enum sp_return sp_blocking_read(struct sp_port *port, void *buf, size_t count, u
 			RETURN_FAIL("WaitCommEvent() failed");
 	}
 
-	RETURN_VALUE("%d", bytes_read);
+	RETURN_VALUE("%d", (enum sp_return) bytes_read);
 
 #else
 	size_t bytes_read = 0;
@@ -1230,7 +1230,7 @@ enum sp_return sp_nonblocking_read(struct sp_port *port, void *buf, size_t count
 		}
 	}
 
-	RETURN_VALUE("%d", bytes_read);
+	RETURN_VALUE("%d", (enum sp_return) bytes_read);
 #else
 	ssize_t bytes_read;
 
@@ -1360,9 +1360,9 @@ enum sp_return sp_add_port_events(struct sp_event_set *event_set,
 
 #ifdef _WIN32
 	enum sp_event handle_mask;
-	if ((handle_mask = (sp_event (mask & SP_EVENT_TX_READY)))
+	if ((handle_mask = (enum sp_event) (mask & SP_EVENT_TX_READY)))
 		TRY(add_handle(event_set, port->write_ovl.hEvent, handle_mask));
-	if ((handle_mask = (sp_event) (mask & (SP_EVENT_RX_READY | SP_EVENT_ERROR))))
+	if ((handle_mask = (enum sp_event) (mask & (SP_EVENT_RX_READY | SP_EVENT_ERROR))))
 		TRY(add_handle(event_set, port->wait_ovl.hEvent, handle_mask));
 #else
 	TRY(add_handle(event_set, port->fd, mask));
