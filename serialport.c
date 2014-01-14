@@ -575,10 +575,12 @@ void sp_free_port_list(struct sp_port **list)
 
 	TRACE("%p", list);
 
+#ifdef WIN32
 	if (!list) {
 		DEBUG("Null list");
 		RETURN();
 	}
+#endif
 
 	DEBUG("Freeing port list");
 
