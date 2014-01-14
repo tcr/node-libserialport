@@ -47,7 +47,7 @@
       'product_prefix': 'lib',
       'type': 'shared_library',
       'sources': [
-        'serialport.c',
+        'serialport.cc',
       ],
       'conditions': [
         ['OS=="linux"', {
