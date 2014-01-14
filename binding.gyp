@@ -6,7 +6,8 @@
         'defines': [ 'DEBUG', '_DEBUG' ],
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'RuntimeLibrary': 1, # static debug
+            'CompileAs': 2,
+            'RuntimeLibrary': 0, # shared debug
           },
         },
       },
@@ -14,7 +15,8 @@
         'defines': [ 'NDEBUG' ],
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'RuntimeLibrary': 0, # static release
+            'CompileAs': 2,
+            'RuntimeLibrary': 1, # shared release
           },
         },
       }
@@ -32,6 +34,7 @@
     'conditions': [
       ['OS=="win"', {
         'defines': [
+          '_WIN32'
         ]
       }]
     ],

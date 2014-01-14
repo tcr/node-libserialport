@@ -24,16 +24,18 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdarg.h>
 #ifdef _WIN32
+#include <process.h>
+#include <io.h>
 #include <windows.h>
 #include <tchar.h>
 #include <stdio.h>
 #else
+#include <unistd.h>
 #include <limits.h>
 #include <termios.h>
 #include <sys/ioctl.h>
@@ -55,6 +57,10 @@
 #include "linux/serial.h"
 #endif
 #include "linux_termios.h"
+
+#ifndef _WIN32
+#define __FUNCTION__  __func__ 
+#endif
 
 /* TCGETX/TCSETX is not available everywhere. */
 #if defined(TCGETX) && defined(TCSETX) && defined(HAVE_TERMIOX)
@@ -166,14 +172,14 @@ void (*sp_debug_handler)(const char *format, ...) = sp_default_debug_handler;
 
 /* Debug output macros. */
 #define DEBUG(fmt, ...) do { if (sp_debug_handler) sp_debug_handler(fmt ".\n", ##__VA_ARGS__); } while (0)
-#define DEBUG_ERROR(err, msg) DEBUG("%s returning " #err ": " msg, __func__)
+#define DEBUG_ERROR(err, msg) DEBUG("%s returning " #err ": " msg, __FUNCTION__)
 #define DEBUG_FAIL(msg) do { \
 	char *errmsg = sp_last_error_message(); \
-	DEBUG("%s returning SP_ERR_FAIL: " msg ": %s", __func__, errmsg); \
+	DEBUG("%s returning SP_ERR_FAIL: " msg ": %s", __FUNCTION__, errmsg); \
 	sp_free_error_message(errmsg); \
 } while (0);
-#define RETURN() do { DEBUG("%s returning", __func__); return; } while(0)
-#define RETURN_CODE(x) do { DEBUG("%s returning " #x, __func__); return x; } while (0)
+#define RETURN() do { DEBUG("%s returning", __FUNCTION__); return; } while(0)
+#define RETURN_CODE(x) do { DEBUG("%s returning " #x, __FUNCTION__); return x; } while (0)
 #define RETURN_CODEVAL(x) do { \
 	switch (x) { \
 		case SP_OK: RETURN_CODE(SP_OK); \
@@ -186,14 +192,18 @@ void (*sp_debug_handler)(const char *format, ...) = sp_default_debug_handler;
 #define RETURN_OK() RETURN_CODE(SP_OK);
 #define RETURN_ERROR(err, msg) do { DEBUG_ERROR(err, msg); return err; } while (0)
 #define RETURN_FAIL(msg) do { DEBUG_FAIL(msg); return SP_ERR_FAIL; } while (0)
+#ifndef WIN32
 #define RETURN_VALUE(fmt, x) do { \
 	typeof(x) _x = x; \
-	DEBUG("%s returning " fmt, __func__, _x); \
+	DEBUG("%s returning " fmt, __FUNCTION__, _x); \
 	return _x; \
 } while (0)
+#else
+#define RETURN_VALUE(fmt, x) return x;
+#endif
 #define SET_ERROR(val, err, msg) do { DEBUG_ERROR(err, msg); val = err; } while (0)
 #define SET_FAIL(val, msg) do { DEBUG_FAIL(msg); val = SP_ERR_FAIL; } while (0)
-#define TRACE(fmt, ...) DEBUG("%s(" fmt ") called", __func__, ##__VA_ARGS__)
+#define TRACE(fmt, ...) DEBUG("%s(" fmt ") called", __FUNCTION__, ##__VA_ARGS__)
 
 #define TRY(x) do { int ret = x; if (ret != SP_OK) RETURN_CODEVAL(ret); } while (0)
 
@@ -221,12 +231,12 @@ enum sp_return sp_get_port_by_name(const char *portname, struct sp_port **port_p
 
 	DEBUG("Building structure for port %s", portname);
 
-	if (!(port = malloc(sizeof(struct sp_port))))
+	if (!(port = (struct sp_port *) malloc(sizeof(struct sp_port))))
 		RETURN_ERROR(SP_ERR_MEM, "Port structure malloc failed");
 
 	len = strlen(portname) + 1;
 
-	if (!(port->name = malloc(len))) {
+	if (!(port->name = (char *) malloc(len))) {
 		free(port);
 		RETURN_ERROR(SP_ERR_MEM, "Port name malloc failed");
 	}
@@ -262,7 +272,7 @@ enum sp_return sp_get_port_handle(const struct sp_port *port, void *result_ptr)
 		RETURN_ERROR(SP_ERR_ARG, "Null port");
 
 #ifdef _WIN32
-	HANDLE *handle_ptr = result_ptr;
+	HANDLE *handle_ptr = (HANDLE *) result_ptr;
 	*handle_ptr = port->hdl;
 #else
 	int *fd_ptr = result_ptr;
@@ -319,7 +329,7 @@ static struct sp_port **list_append(struct sp_port **list, const char *portname)
 	for (count = 0; list[count]; count++);
 	if (!(tmp = realloc(list, sizeof(struct sp_port *) * (count + 2))))
 		goto fail;
-	list = tmp;
+	list = (struct sp_port **) tmp;
 	if (sp_get_port_by_name(portname, &list[count]) != SP_OK)
 		goto fail;
 	list[count + 1] = NULL;
@@ -342,7 +352,7 @@ enum sp_return sp_list_ports(struct sp_port ***list_ptr)
 
 	DEBUG("Enumerating ports");
 
-	if (!(list = malloc(sizeof(struct sp_port **))))
+	if (!(list = (struct sp_port **) malloc(sizeof(struct sp_port **))))
 		RETURN_ERROR(SP_ERR_MEM, "Port list malloc failed");
 
 	list[0] = NULL;
@@ -371,11 +381,11 @@ enum sp_return sp_list_ports(struct sp_port ***list_ptr)
 		goto out_close;
 	}
 	max_data_len = max_data_size / sizeof(TCHAR);
-	if (!(value = malloc((max_value_len + 1) * sizeof(TCHAR)))) {
+	if (!(value = (TCHAR *) malloc((max_value_len + 1) * sizeof(TCHAR)))) {
 		SET_ERROR(ret, SP_ERR_MEM, "registry value malloc failed");
 		goto out_close;
 	}
-	if (!(data = malloc((max_data_len + 1) * sizeof(TCHAR)))) {
+	if (!(data = (TCHAR *) malloc((max_data_len + 1) * sizeof(TCHAR)))) {
 		SET_ERROR(ret, SP_ERR_MEM, "registry data malloc failed");
 		goto out_free_value;
 	}
@@ -393,7 +403,7 @@ enum sp_return sp_list_ports(struct sp_port ***list_ptr)
 #else
 		name_len = data_len + 1;
 #endif
-		if (!(name = malloc(name_len))) {
+		if (!(name = (char *) malloc(name_len))) {
 			SET_ERROR(ret, SP_ERR_MEM, "registry port name malloc failed");
 			goto out;
 		}
@@ -559,7 +569,7 @@ out:
 		if (list)
 			sp_free_port_list(list);
 		*list_ptr = NULL;
-		return ret;
+		return (enum sp_return) ret;
 	}
 }
 
@@ -626,7 +636,7 @@ enum sp_return sp_open(struct sp_port *port, enum sp_mode flags)
 	COMSTAT status;
 
 	/* Prefix port name with '\\.\' to work with ports above COM9. */
-	if (!(escaped_port_name = malloc(strlen(port->name + 5))))
+	if (!(escaped_port_name = (char *) malloc(strlen(port->name + 5))))
 		RETURN_ERROR(SP_ERR_MEM, "Escaped port name malloc failed");
 	sprintf(escaped_port_name, "\\\\.\\%s", port->name);
 
@@ -895,7 +905,7 @@ enum sp_return sp_blocking_write(struct sp_port *port, const void *buf, size_t c
 		DEBUG("Writing %d bytes to port %s, no timeout", count, port->name);
 
 	if (count == 0)
-		RETURN_VALUE("0", 0);
+		RETURN_VALUE("0", (enum sp_return) 0);
 
 #ifdef _WIN32
 	DWORD bytes_written = 0;
@@ -922,13 +932,13 @@ enum sp_return sp_blocking_write(struct sp_port *port, const void *buf, size_t c
 			DEBUG("Waiting for write to complete");
 			GetOverlappedResult(port->hdl, &port->write_ovl, &bytes_written, TRUE);
 			DEBUG("Write completed, %d/%d bytes written", bytes_written, count);
-			RETURN_VALUE("%d", bytes_written);
+			RETURN_VALUE("%d", (sp_return) bytes_written);
 		} else {
 			RETURN_FAIL("WriteFile() failed");
 		}
 	} else {
 		DEBUG("Write completed immediately");
-		RETURN_VALUE("%d", count);
+		RETURN_VALUE("%d", (sp_return) count);
 	}
 #else
 	size_t bytes_written = 0;
@@ -1006,7 +1016,7 @@ enum sp_return sp_nonblocking_write(struct sp_port *port, const void *buf, size_
 	DEBUG("Writing up to %d bytes to port %s", count, port->name);
 
 	if (count == 0)
-		RETURN_VALUE("0", 0);
+		RETURN_VALUE("0", (enum sp_return) 0);
 
 #ifdef _WIN32
 	DWORD written = 0;
@@ -1020,7 +1030,7 @@ enum sp_return sp_nonblocking_write(struct sp_port *port, const void *buf, size_
 		} else {
 			DEBUG("Previous write not complete");
 			/* Can't take a new write until the previous one finishes. */
-			RETURN_VALUE("0", 0);
+			RETURN_VALUE("0", (enum sp_return) 0);
 		}
 	}
 
@@ -1047,7 +1057,7 @@ enum sp_return sp_nonblocking_write(struct sp_port *port, const void *buf, size_
 				} else {
 					DEBUG("Asynchronous write running");
 					port->writing = 1;
-					RETURN_VALUE("%d", ++written);
+					RETURN_VALUE("%d", (enum sp_return) ++written);
 				}
 			} else {
 				/* Actual failure of some kind. */
@@ -1061,7 +1071,7 @@ enum sp_return sp_nonblocking_write(struct sp_port *port, const void *buf, size_
 
 	DEBUG("All bytes written immediately");
 
-	RETURN_VALUE("%d", written);
+	RETURN_VALUE("%d", (enum sp_return) written);
 #else
 	/* Returns the number of bytes written, or -1 upon failure. */
 	ssize_t written = write(port->fd, buf, count);
@@ -1088,7 +1098,7 @@ enum sp_return sp_blocking_read(struct sp_port *port, void *buf, size_t count, u
 		DEBUG("Reading %d bytes from port %s, no timeout", count, port->name);
 
 	if (count == 0)
-		RETURN_VALUE("0", 0);
+		RETURN_VALUE("0", (enum sp_return) 0);
 
 #ifdef _WIN32
 	DWORD bytes_read = 0;
@@ -1119,7 +1129,7 @@ enum sp_return sp_blocking_read(struct sp_port *port, void *buf, size_t count, u
 			RETURN_FAIL("WaitCommEvent() failed");
 	}
 
-	RETURN_VALUE("%d", bytes_read);
+	RETURN_VALUE("%d", (enum sp_return) bytes_read);
 
 #else
 	size_t bytes_read = 0;
@@ -1220,7 +1230,7 @@ enum sp_return sp_nonblocking_read(struct sp_port *port, void *buf, size_t count
 		}
 	}
 
-	RETURN_VALUE("%d", bytes_read);
+	RETURN_VALUE("%d", (enum sp_return) bytes_read);
 #else
 	ssize_t bytes_read;
 
@@ -1251,7 +1261,7 @@ enum sp_return sp_input_waiting(struct sp_port *port)
 
 	if (ClearCommError(port->hdl, &errors, &comstat) == 0)
 		RETURN_FAIL("ClearCommError() failed");
-	RETURN_VALUE("%d", comstat.cbInQue);
+	RETURN_VALUE("%d", (enum sp_return) comstat.cbInQue);
 #else
 	int bytes_waiting;
 	if (ioctl(port->fd, TIOCINQ, &bytes_waiting) < 0)
@@ -1274,7 +1284,7 @@ enum sp_return sp_output_waiting(struct sp_port *port)
 
 	if (ClearCommError(port->hdl, &errors, &comstat) == 0)
 		RETURN_FAIL("ClearCommError() failed");
-	RETURN_VALUE("%d", comstat.cbOutQue);
+	RETURN_VALUE("%d", (enum sp_return) comstat.cbOutQue);
 #else
 	int bytes_waiting;
 	if (ioctl(port->fd, TIOCOUTQ, &bytes_waiting) < 0)
@@ -1294,7 +1304,7 @@ enum sp_return sp_new_event_set(struct sp_event_set **result_ptr)
 
 	*result_ptr = NULL;
 
-	if (!(result = malloc(sizeof(struct sp_event_set))))
+	if (!(result = (struct sp_event_set *) malloc(sizeof(struct sp_event_set))))
 		RETURN_ERROR(SP_ERR_MEM, "sp_event_set malloc() failed");
 
 	memset(result, 0, sizeof(struct sp_event_set));
@@ -1316,7 +1326,7 @@ static enum sp_return add_handle(struct sp_event_set *event_set,
 			sizeof(event_handle) * (event_set->count + 1))))
 		RETURN_ERROR(SP_ERR_MEM, "handle array realloc() failed");
 
-	if (!(new_masks = realloc(event_set->masks,
+	if (!(new_masks = (enum sp_event *) realloc(event_set->masks,
 			sizeof(enum sp_event) * (event_set->count + 1))))
 		RETURN_ERROR(SP_ERR_MEM, "mask array realloc() failed");
 
@@ -1350,9 +1360,9 @@ enum sp_return sp_add_port_events(struct sp_event_set *event_set,
 
 #ifdef _WIN32
 	enum sp_event handle_mask;
-	if ((handle_mask = mask & SP_EVENT_TX_READY))
+	if ((handle_mask = (enum sp_event) (mask & SP_EVENT_TX_READY)))
 		TRY(add_handle(event_set, port->write_ovl.hEvent, handle_mask));
-	if ((handle_mask = mask & (SP_EVENT_RX_READY | SP_EVENT_ERROR)))
+	if ((handle_mask = (enum sp_event) (mask & (SP_EVENT_RX_READY | SP_EVENT_ERROR))))
 		TRY(add_handle(event_set, port->wait_ovl.hEvent, handle_mask));
 #else
 	TRY(add_handle(event_set, port->fd, mask));
@@ -1390,7 +1400,7 @@ enum sp_return sp_wait(struct sp_event_set *event_set, unsigned int timeout)
 		RETURN_ERROR(SP_ERR_ARG, "Null event set");
 
 #ifdef _WIN32
-	if (WaitForMultipleObjects(event_set->count, event_set->handles, FALSE,
+	if (WaitForMultipleObjects(event_set->count, (const HANDLE *) event_set->handles, FALSE,
 			timeout ? timeout : INFINITE) == WAIT_FAILED)
 		RETURN_FAIL("WaitForMultipleObjects() failed");
 
@@ -1619,7 +1629,7 @@ static enum sp_return get_config(struct sp_port *port, struct port_data *data,
 			config->parity = SP_PARITY_SPACE;
 			break;
 		default:
-			config->parity = -1;
+			config->parity = (sp_parity) -1;
 		}
 	else
 		config->parity = SP_PARITY_NONE;
@@ -1646,7 +1656,7 @@ static enum sp_return get_config(struct sp_port *port, struct port_data *data,
 		config->rts = SP_RTS_FLOW_CONTROL;
 		break;
 	default:
-		config->rts = -1;
+		config->rts = (sp_rts) -1;
 	}
 
 	config->cts = data->dcb.fOutxCtsFlow ? SP_CTS_FLOW_CONTROL : SP_CTS_IGNORE;
@@ -1662,7 +1672,7 @@ static enum sp_return get_config(struct sp_port *port, struct port_data *data,
 		config->dtr = SP_DTR_FLOW_CONTROL;
 		break;
 	default:
-		config->dtr = -1;
+		config->dtr = (sp_dtr) -1;
 	}
 
 	config->dsr = data->dcb.fOutxDsrFlow ? SP_DSR_FLOW_CONTROL : SP_DSR_IGNORE;
@@ -2182,17 +2192,17 @@ enum sp_return sp_new_config(struct sp_port_config **config_ptr)
 
 	*config_ptr = NULL;
 
-	if (!(config = malloc(sizeof(struct sp_port_config))))
+	if (!(config = (struct sp_port_config *) malloc(sizeof(struct sp_port_config))))
 		RETURN_ERROR(SP_ERR_MEM, "config malloc failed");
 
 	config->baudrate = -1;
 	config->bits = -1;
-	config->parity = -1;
+	config->parity = (enum sp_parity) -1;
 	config->stopbits = -1;
-	config->rts = -1;
-	config->cts = -1;
-	config->dtr = -1;
-	config->dsr = -1;
+	config->rts = (enum sp_rts) -1;
+	config->cts = (enum sp_cts) -1;
+	config->dtr = (enum sp_dtr) -1;
+	config->dsr = (enum sp_dsr) -1;
 
 	*config_ptr = config;
 
@@ -2344,19 +2354,19 @@ enum sp_return sp_get_signals(struct sp_port *port, enum sp_signal *signals)
 
 	DEBUG("Getting control signals for port %s", port->name);
 
-	*signals = 0;
+	*signals = (enum sp_signal) 0;
 #ifdef _WIN32
 	DWORD bits;
 	if (GetCommModemStatus(port->hdl, &bits) == 0)
 		RETURN_FAIL("GetCommModemStatus() failed");
 	if (bits & MS_CTS_ON)
-		*signals |= SP_SIG_CTS;
+		*signals = (sp_signal) (((int) *signals) | SP_SIG_CTS);
 	if (bits & MS_DSR_ON)
-		*signals |= SP_SIG_DSR;
+		*signals = (sp_signal) (((int) *signals) | SP_SIG_DSR);
 	if (bits & MS_RLSD_ON)
-		*signals |= SP_SIG_DCD;
+		*signals = (sp_signal) (((int) *signals) | SP_SIG_DCD);
 	if (bits & MS_RING_ON)
-		*signals |= SP_SIG_RI;
+		*signals = (sp_signal) (((int) *signals) | SP_SIG_RI);
 #else
 	int bits;
 	if (ioctl(port->fd, TIOCMGET, &bits) < 0)
@@ -2433,7 +2443,7 @@ char *sp_last_error_message(void)
 		(LPTSTR) &message,
 		0, NULL );
 
-	RETURN_VALUE("%s", message);
+	RETURN_VALUE("%s", (char *) message);
 #else
 	RETURN_VALUE("%s", strerror(errno));
 #endif
