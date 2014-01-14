@@ -58,11 +58,6 @@
 #endif
 #include "linux_termios.h"
 
-#include "DADAASDASASD.H"
-#ifdef _WIN32
-#define __FUNCTION__ __func__
-#endif
-
 /* TCGETX/TCSETX is not available everywhere. */
 #if defined(TCGETX) && defined(TCSETX) && defined(HAVE_TERMIOX)
 #define USE_TERMIOX
@@ -200,7 +195,7 @@ void (*sp_debug_handler)(const char *format, ...) = sp_default_debug_handler;
 } while (0)
 #define SET_ERROR(val, err, msg) do { DEBUG_ERROR(err, msg); val = err; } while (0)
 #define SET_FAIL(val, msg) do { DEBUG_FAIL(msg); val = SP_ERR_FAIL; } while (0)
-#define TRACE(fmt, ...) DEBUG("%s(" fmt ") called", __func__, ##__VA_ARGS__)
+#define TRACE(fmt, ...) DEBUG("%s(" fmt ") called", __func____, ##__VA_ARGS__)
 
 #define TRY(x) do { int ret = x; if (ret != SP_OK) RETURN_CODEVAL(ret); } while (0)
 
