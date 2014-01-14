@@ -2192,17 +2192,17 @@ enum sp_return sp_new_config(struct sp_port_config **config_ptr)
 
 	*config_ptr = NULL;
 
-	if (!(config = malloc(sizeof(struct sp_port_config))))
+	if (!(config = (struct sp_port_config *) malloc(sizeof(struct sp_port_config))))
 		RETURN_ERROR(SP_ERR_MEM, "config malloc failed");
 
 	config->baudrate = -1;
 	config->bits = -1;
-	config->parity = -1;
+	config->parity = (sp_parity) -1;
 	config->stopbits = -1;
-	config->rts = -1;
-	config->cts = -1;
-	config->dtr = -1;
-	config->dsr = -1;
+	config->rts = (sp_rts) -1;
+	config->cts = (sp_cts) -1;
+	config->dtr = (sp_dtr) -1;
+	config->dsr = (sp_dsr) -1;
 
 	*config_ptr = config;
 
@@ -2354,7 +2354,7 @@ enum sp_return sp_get_signals(struct sp_port *port, enum sp_signal *signals)
 
 	DEBUG("Getting control signals for port %s", port->name);
 
-	*signals = 0;
+	*signals = (sp_signal) 0;
 #ifdef _WIN32
 	DWORD bits;
 	if (GetCommModemStatus(port->hdl, &bits) == 0)
