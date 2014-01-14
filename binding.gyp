@@ -6,7 +6,7 @@
         'defines': [ 'DEBUG', '_DEBUG' ],
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'RuntimeLibrary': 1, # static debug
+            'RuntimeLibrary': 0, # shared debug
           },
         },
       },
@@ -14,7 +14,8 @@
         'defines': [ 'NDEBUG' ],
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'RuntimeLibrary': 0, # static release
+            'CompileAs': 'CompileAsCpp',
+            'RuntimeLibrary': 1, # shared release
           },
         },
       }
