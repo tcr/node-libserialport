@@ -59,7 +59,7 @@
 #include "linux_termios.h"
 
 #ifdef WIN32
-#define __FUNCTION__ __func__
+#define __func__ __FUNCTION__
 #endif
 
 /* TCGETX/TCSETX is not available everywhere. */
@@ -575,12 +575,10 @@ void sp_free_port_list(struct sp_port **list)
 
 	TRACE("%p", list);
 
-#ifdef WIN32
 	if (!list) {
 		DEBUG("Null list");
 		RETURN();
 	}
-#endif
 
 	DEBUG("Freeing port list");
 
