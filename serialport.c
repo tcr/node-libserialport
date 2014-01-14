@@ -81,7 +81,13 @@
 #define USE_TERMIOS_SPEED
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "libserialport.h"
+#ifdef __cplusplus
+}
+#endif
 
 struct sp_port {
 	char *name;
