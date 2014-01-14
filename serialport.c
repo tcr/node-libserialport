@@ -24,16 +24,18 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdarg.h>
 #ifdef _WIN32
+#include <process.h>
+#include <io.h>
 #include <windows.h>
 #include <tchar.h>
 #include <stdio.h>
 #else
+#include <unistd.h>
 #include <limits.h>
 #include <termios.h>
 #include <sys/ioctl.h>
