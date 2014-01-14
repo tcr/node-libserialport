@@ -25,7 +25,7 @@ var
 	  /** Ring indicator. */
 	  SP_SIG_RI = 8
 
-var sp = ffi.Library('./libserialport/build/Release/libserialport', {
+var sp = ffi.Library('./build/Release/libserialport', {
   // Port enumeration
   'sp_list_ports': [ 'int', [ sp_portPtrPtrPtr ] ],
   'sp_free_port_list':	[ 'void', [ sp_portPtrPtr ] ],
