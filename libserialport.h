@@ -97,6 +97,7 @@ extern "C" {
 #else
 #define API
 #endif
+#endif
 
 /** Return values. */
 enum sp_return {
