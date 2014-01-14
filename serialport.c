@@ -59,6 +59,7 @@
 #include "linux_termios.h"
 
 #ifdef _WIN32
+#error TRAP
 #define __FUNCTION__ __func__
 #endif
 
