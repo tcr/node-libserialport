@@ -1261,7 +1261,7 @@ enum sp_return sp_input_waiting(struct sp_port *port)
 
 	if (ClearCommError(port->hdl, &errors, &comstat) == 0)
 		RETURN_FAIL("ClearCommError() failed");
-	RETURN_VALUE("%d", comstat.cbInQue);
+	RETURN_VALUE("%d", (enum sp_return) comstat.cbInQue);
 #else
 	int bytes_waiting;
 	if (ioctl(port->fd, TIOCINQ, &bytes_waiting) < 0)
@@ -1284,7 +1284,7 @@ enum sp_return sp_output_waiting(struct sp_port *port)
 
 	if (ClearCommError(port->hdl, &errors, &comstat) == 0)
 		RETURN_FAIL("ClearCommError() failed");
-	RETURN_VALUE("%d", comstat.cbOutQue);
+	RETURN_VALUE("%d", (enum sp_return) comstat.cbOutQue);
 #else
 	int bytes_waiting;
 	if (ioctl(port->fd, TIOCOUTQ, &bytes_waiting) < 0)
@@ -1304,7 +1304,7 @@ enum sp_return sp_new_event_set(struct sp_event_set **result_ptr)
 
 	*result_ptr = NULL;
 
-	if (!(result = malloc(sizeof(struct sp_event_set))))
+	if (!(result = (struct sp_event_set *) malloc(sizeof(struct sp_event_set))))
 		RETURN_ERROR(SP_ERR_MEM, "sp_event_set malloc() failed");
 
 	memset(result, 0, sizeof(struct sp_event_set));
@@ -1326,7 +1326,7 @@ static enum sp_return add_handle(struct sp_event_set *event_set,
 			sizeof(event_handle) * (event_set->count + 1))))
 		RETURN_ERROR(SP_ERR_MEM, "handle array realloc() failed");
 
-	if (!(new_masks = realloc(event_set->masks,
+	if (!(new_masks = (enum sp_event *) realloc(event_set->masks,
 			sizeof(enum sp_event) * (event_set->count + 1))))
 		RETURN_ERROR(SP_ERR_MEM, "mask array realloc() failed");
 
@@ -1360,9 +1360,9 @@ enum sp_return sp_add_port_events(struct sp_event_set *event_set,
 
 #ifdef _WIN32
 	enum sp_event handle_mask;
-	if ((handle_mask = mask & SP_EVENT_TX_READY))
+	if ((handle_mask = (sp_event (mask & SP_EVENT_TX_READY)))
 		TRY(add_handle(event_set, port->write_ovl.hEvent, handle_mask));
-	if ((handle_mask = mask & (SP_EVENT_RX_READY | SP_EVENT_ERROR)))
+	if ((handle_mask = (sp_event) (mask & (SP_EVENT_RX_READY | SP_EVENT_ERROR))))
 		TRY(add_handle(event_set, port->wait_ovl.hEvent, handle_mask));
 #else
 	TRY(add_handle(event_set, port->fd, mask));
@@ -1400,7 +1400,7 @@ enum sp_return sp_wait(struct sp_event_set *event_set, unsigned int timeout)
 		RETURN_ERROR(SP_ERR_ARG, "Null event set");
 
 #ifdef _WIN32
-	if (WaitForMultipleObjects(event_set->count, event_set->handles, FALSE,
+	if (WaitForMultipleObjects(event_set->count, (const HANDLE *) event_set->handles, FALSE,
 			timeout ? timeout : INFINITE) == WAIT_FAILED)
 		RETURN_FAIL("WaitForMultipleObjects() failed");
 
@@ -1629,7 +1629,7 @@ static enum sp_return get_config(struct sp_port *port, struct port_data *data,
 			config->parity = SP_PARITY_SPACE;
 			break;
 		default:
-			config->parity = -1;
+			config->parity = (sp_parity) -1;
 		}
 	else
 		config->parity = SP_PARITY_NONE;
@@ -1656,7 +1656,7 @@ static enum sp_return get_config(struct sp_port *port, struct port_data *data,
 		config->rts = SP_RTS_FLOW_CONTROL;
 		break;
 	default:
-		config->rts = -1;
+		config->rts = (sp_rts) -1;
 	}
 
 	config->cts = data->dcb.fOutxCtsFlow ? SP_CTS_FLOW_CONTROL : SP_CTS_IGNORE;
@@ -1672,7 +1672,7 @@ static enum sp_return get_config(struct sp_port *port, struct port_data *data,
 		config->dtr = SP_DTR_FLOW_CONTROL;
 		break;
 	default:
-		config->dtr = -1;
+		config->dtr = (sp_dtr) -1;
 	}
 
 	config->dsr = data->dcb.fOutxDsrFlow ? SP_DSR_FLOW_CONTROL : SP_DSR_IGNORE;
@@ -2360,11 +2360,11 @@ enum sp_return sp_get_signals(struct sp_port *port, enum sp_signal *signals)
 	if (GetCommModemStatus(port->hdl, &bits) == 0)
 		RETURN_FAIL("GetCommModemStatus() failed");
 	if (bits & MS_CTS_ON)
-		*signals |= SP_SIG_CTS;
+		*signals = (sp_signal) (((int) *signals) | SP_SIG_CTS);
 	if (bits & MS_DSR_ON)
-		*signals |= SP_SIG_DSR;
+		*signals = (sp_signal) (((int) *signals) | SP_SIG_DSR);
 	if (bits & MS_RLSD_ON)
-		*signals |= SP_SIG_DCD;
+		*signals = (sp_signal) (((int) *signals) | SP_SIG_DCD);
 	if (bits & MS_RING_ON)
 		*signals = (sp_signal) (((int) *signals) | SP_SIG_RI);
 #else
