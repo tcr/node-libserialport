@@ -2366,7 +2366,7 @@ enum sp_return sp_get_signals(struct sp_port *port, enum sp_signal *signals)
 	if (bits & MS_RLSD_ON)
 		*signals |= SP_SIG_DCD;
 	if (bits & MS_RING_ON)
-		*signals |= SP_SIG_RI;
+		*signals = (sp_signal) (((int) *signals) | SP_SIG_RI);
 #else
 	int bits;
 	if (ioctl(port->fd, TIOCMGET, &bits) < 0)
@@ -2443,7 +2443,7 @@ char *sp_last_error_message(void)
 		(LPTSTR) &message,
 		0, NULL );
 
-	RETURN_VALUE("%s", message);
+	RETURN_VALUE("%s", (char *) message);
 #else
 	RETURN_VALUE("%s", strerror(errno));
 #endif
