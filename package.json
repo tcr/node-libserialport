@@ -12,7 +12,6 @@
   },
   "author": "",
   "license": "BSD-2-Clause",
-  "gypfile": true,
   "bugs": {
     "url": "https://github.com/martinling/libserialport/issues"
   }
