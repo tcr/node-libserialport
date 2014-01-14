@@ -385,7 +385,7 @@ enum sp_return sp_list_ports(struct sp_port ***list_ptr)
 		SET_ERROR(ret, SP_ERR_MEM, "registry value malloc failed");
 		goto out_close;
 	}
-	if (!(data = (THCAR *) malloc((max_data_len + 1) * sizeof(TCHAR)))) {
+	if (!(data = (TCHAR *) malloc((max_data_len + 1) * sizeof(TCHAR)))) {
 		SET_ERROR(ret, SP_ERR_MEM, "registry data malloc failed");
 		goto out_free_value;
 	}

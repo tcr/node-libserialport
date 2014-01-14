@@ -6,7 +6,7 @@
         'defines': [ 'DEBUG', '_DEBUG' ],
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'CompileAsCpp': 1,
+            'CompileAs': 2,
             'RuntimeLibrary': 0, # shared debug
           },
         },
@@ -15,7 +15,7 @@
         'defines': [ 'NDEBUG' ],
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'CompileAsCpp': 1,
+            'CompileAs': 2,
             'RuntimeLibrary': 1, # shared release
           },
         },
@@ -47,7 +47,7 @@
       'product_prefix': 'lib',
       'type': 'shared_library',
       'sources': [
-        'serialport.cc',
+        'serialport.c',
       ],
       'conditions': [
         ['OS=="linux"', {
