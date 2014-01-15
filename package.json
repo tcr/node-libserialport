@@ -1,6 +1,6 @@
 {
   "name": "libserialport",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "optionalDependencies": {
     "libserialport-shyp-win32-ia32": "0.1.1",
     "libserialport-shyp-win32-x64": "0.1.1"
@@ -13,13 +13,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/martinling/libserialport.git"
+    "url": "https://github.com/tcr/libserialport.git"
   },
   "author": "",
   "license": "BSD-2-Clause",
   "gypfile": true,
   "bugs": {
-    "url": "https://github.com/martinling/libserialport/issues"
+    "url": "https://github.com/tcr/libserialport/issues"
   },
   "dependencies": {
     "bindings-shyp": "~0.2.0",

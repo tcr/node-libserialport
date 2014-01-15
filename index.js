@@ -220,13 +220,23 @@ function lookupPort (path) {
 exports.open = function (path) {
 	var stream = new (require('stream').Duplex);
 	stream._write = function (data, encoding, next) {
-		sp.sp_blocking_write(port, data, data.length, 0);
+		while (true) {
+			var num = sp.sp_nonblocking_write(port, data, data.length);
+			if (num < data.length) {
+				data = data.slice(num);
+			} else {
+				break;
+			}
+		}
 		next(null);
 	};
 	stream._read = function () {
 	};
 
 	var port = lookupPort(path);
+	if (!port) {
+		throw new Error('Port ' + path + ' not found.');
+	}
 	var ret = sp.sp_open(port, SP_MODE_READ | SP_MODE_WRITE);
 	// console.log('open', ret);
 
