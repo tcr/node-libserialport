@@ -1,9 +1,9 @@
 {
   "name": "libserialport",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "optionalDependencies": {
-    "libserialport-shyp-win32-ia32": "0.1.0",
-    "libserialport-shyp-win32-x64": "0.1.0"
+    "libserialport-shyp-win32-ia32": "0.1.1",
+    "libserialport-shyp-win32-x64": "0.1.1"
   },
   "description": "------------------------------------------------------------------------------- libserialport: cross-platform library for accessing serial ports -------------------------------------------------------------------------------",
   "main": "index.js",
