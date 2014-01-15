@@ -1,11 +1,15 @@
 {
   "name": "libserialport",
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "optionalDependencies": {
+    "libserialport-shyp-win32-ia32": "0.1.0",
+    "libserialport-shyp-win32-x64": "0.1.0"
+  },
   "description": "------------------------------------------------------------------------------- libserialport: cross-platform library for accessing serial ports -------------------------------------------------------------------------------",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "install": "node-gyp rebuild"
+    "install": "node shyp-blacklist.js win32-x64 win32-ia32 || node-gyp rebuild"
   },
   "repository": {
     "type": "git",
