@@ -50,7 +50,7 @@ var
 	SP_RTS_FLOW_CONTROL = 2,
 // };
 
-	_dummy;
+	_dummy = null;
 
 var sp = ffi.Library(path.join(path.dirname(require('bindings-shyp')({ bindings: 'binding', path: true })), 'libserialport'), {
   // Port enumeration
