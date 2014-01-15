@@ -191,7 +191,7 @@ function getPortName (port) {
 	return sp.sp_get_port_name(port);
 }
 
-exports.list = function list () {
+exports.list = function list (next) {
 	var listPtrPtr = ref.alloc(sp_portPtrPtr);
 	var err = sp.sp_list_ports(listPtrPtr);
 	if (err == 0) {
@@ -200,7 +200,7 @@ exports.list = function list () {
 		});
 	}
 	sp.sp_free_port_list(listPtrPtr.deref());
-	return ports;
+	next(!ports, ports);
 }
 
 function lookupPort (path) {
@@ -220,7 +220,7 @@ function lookupPort (path) {
 exports.open = function (path) {
 	var stream = new (require('stream').Duplex);
 	stream._write = function (data, encoding, next) {
-		sp.sp_nonblocking_write(port, data, data.length);
+		sp.sp_blocking_write(port, data, data.length, 0);
 		next(null);
 	};
 	stream._read = function () {
