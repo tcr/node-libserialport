@@ -56,6 +56,10 @@
           ],
         }]
       ],
+      'dependencies': [
+        'node_modules/ffi/binding.gyp:ffi_bindings',
+        'node_modules/ref/binding.gyp:binding'
+      ]
     }
   ]
 }
