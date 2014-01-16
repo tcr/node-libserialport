@@ -17,7 +17,7 @@
     "url": "https://github.com/tcr/libserialport.git"
   },
   "author": "",
-  "license": "BSD-2-Clause",
+  "license": "LGPL-3.0",
   "gypfile": true,
   "bugs": {
     "url": "https://github.com/tcr/libserialport/issues"
