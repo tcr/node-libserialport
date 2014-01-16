@@ -43,6 +43,9 @@
     {
       'target_name': 'disphelper',
       'type': 'static_library',
+      'sources': [
+        'dummy.cc'
+      ],
       'conditions': [
         ['OS=="win"', {
           'sources': [
