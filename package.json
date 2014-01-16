@@ -1,10 +1,10 @@
 {
   "name": "libserialport",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "optionalDependencies": {
-    "libserialport-shyp-win32-ia32": "0.1.6",
-    "libserialport-shyp-win32-x64": "0.1.6",
-    "libserialport-shyp-darwin-x64": "0.1.6"
+    "libserialport-shyp-win32-ia32": "0.2.0",
+    "libserialport-shyp-win32-x64": "0.2.0",
+    "libserialport-shyp-darwin-x64": "0.2.0"
   },
   "description": "Cross-platform binding for libserialport, access serial ports",
   "main": "index.js",
