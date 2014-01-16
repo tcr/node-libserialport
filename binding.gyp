@@ -54,6 +54,9 @@
           'sources': [
             'linux_termios.c'
           ],
+          'libraries': [
+            '-ludev'
+          ]
         }]
       ],
       'dependencies': [
