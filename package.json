@@ -24,7 +24,6 @@
   },
   "dependencies": {
     "bindings-shyp": "~0.2.0",
-    "debug": "~0.7.4",
-    "array-index": "~0.1.0"
+    "ffi-shyp": "~0.1.0"
   }
 }

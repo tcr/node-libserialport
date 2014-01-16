@@ -1,7 +1,7 @@
-var ref = require('./modules/ref');
-var ArrayType = require('./modules/ref-array');
-var ffi = require('./modules/ffi');
-var Struct = require('./modules/ref-struct');
+var ref = require('ffi-shyp/ref');
+var ArrayType = require('ffi-shyp/ref-array');
+var ffi = require('ffi-shyp/ffi');
+var Struct = require('ffi-shyp/ref-struct');
 var path = require('path')
 
 var sp_port = ref.types.void; // ignore layout

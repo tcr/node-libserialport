@@ -1,6 +1,8 @@
 var libserialport = require('../');
 
 libserialport.list(function (err, ports) {
+	console.log(ports);
+
 	var port = ports.filter(function (port) {
 		return port.path.match(/^\/dev\/(tty|cu)\.usbmodem.*$|^COM\d+$/);
 	})[0];
