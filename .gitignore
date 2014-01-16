@@ -17,3 +17,4 @@ serialport.lo
 serialport.o
 linux_termios.lo
 linux_termios.o
+node_modules
