@@ -11,7 +11,7 @@ exec('find /sys/devices | grep usb | grep \"tty\\w\\+$\"', function (err, stdout
 		}).pop();
 		console.log('COM:', com)
 		var usbloc = path.replace(/[^\/]+:[^:]+$/, '');
-		console.log('idVendor:', fs.existsSync(usbloc + 'idVendor') && fs.readFileSync(usbloc + 'idVendor'));
-		console.log('idProduct:', fs.existsSync(usbloc + 'idProduct') && fs.readFileSync(usbloc + 'idProduct'));
+		console.log('idVendor:', fs.existsSync(usbloc + 'idVendor') && fs.readFileSync(usbloc + 'idVendor', 'utf-8'));
+		console.log('idProduct:', fs.existsSync(usbloc + 'idProduct') && fs.readFileSync(usbloc + 'idProduct', 'utf-8'));
 	})
 });
