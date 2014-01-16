@@ -58,7 +58,7 @@
             '-ludev'
           ],
           'defines': [
-            'HAVE_LIBUDEV'
+            'HAVE_LIBUDEV=1'
           ]
         }]
       ],
