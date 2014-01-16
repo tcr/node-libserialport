@@ -239,22 +239,24 @@ exports.list = function (next) {
 					vendorId: ref.readCString(res.deref().vendorId.buffer).replace(/^0x/, '').toLowerCase(),
 					productId: ref.readCString(res.deref().productId.buffer).replace(/^0x/, '').toLowerCase()
 				};
-			})
-			.forEach(function (modem) {
-				// Specific fixes for Windows here
-				if (!modem.pnpId) {
-					return;
-				}
-				if (!modem.vendorId) {
-					modem.vendorId = (modem.pnpId.match(/VID_([0-9A-F])+/i) || ['', ''])[1].replace(/^0x/, '').toLowerCase()
-				}
-				if (!modem.productId) {
-					modem.productId = (modem.pnpId.match(/PID_([0-9A-F])+/i) || ['', ''])[1].replace(/^0x/, '').toLowerCase()
-				}
-				if (!modem.serialNumber) {
-					modem.serialNumber = modem.pnpId.split('\\\\').pop();
-				}
 			});
+		
+		list.forEach(function (modem) {
+			// Specific fixes for Windows here
+			if (!modem.pnpId) {
+				return;
+			}
+			if (!modem.vendorId) {
+				modem.vendorId = (modem.pnpId.match(/VID_([0-9A-F])+/i) || ['', ''])[1].replace(/^0x/, '').toLowerCase()
+			}
+			if (!modem.productId) {
+				modem.productId = (modem.pnpId.match(/PID_([0-9A-F])+/i) || ['', ''])[1].replace(/^0x/, '').toLowerCase()
+			}
+			if (!modem.serialNumber) {
+				modem.serialNumber = modem.pnpId.split('\\\\').pop();
+			}
+		});
+
 		sp.xsp_free_ports_list(ports);
 		next(null, list);
 
