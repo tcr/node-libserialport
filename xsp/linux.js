@@ -3,15 +3,24 @@ var _path = require('path');
 var exec = require('child_process').exec;
 
 exec('find /sys/devices | grep usb | grep \"tty\\w\\+$\"', function (err, stdout, stderr) {
-	stdout.split(/\r?\n/).filter(function (a) {
+	var modems = stdout.split(/\r?\n/).filter(function (a) {
 		return (a);
-	}).forEach(function (path) {
+	}).map(function (path) {
 		var com = path.split(/\//).filter(function (a) {
 			return a;
 		}).pop();
-		console.log('COM:', com)
 		var usbloc = path.replace(/[^\/]+:[^:]+$/, '');
-		console.log('idVendor:', fs.existsSync(usbloc + 'idVendor') && fs.readFileSync(usbloc + 'idVendor', 'utf-8').replace(/^\s+|\s+$/g, ''));
-		console.log('idProduct:', fs.existsSync(usbloc + 'idProduct') && fs.readFileSync(usbloc + 'idProduct', 'utf-8').replace(/^\s+|\s+$/g, ''));
-	})
+
+		return {
+			path: '/dev/' + com,
+			manufacturer: '',
+			serialNumber: '',
+			pnpId: '',
+			locationId: '',
+			vendorId: fs.existsSync(usbloc + 'idVendor') && fs.readFileSync(usbloc + 'idVendor', 'utf-8').replace(/^\s+|\s+$/g, ''),
+			productId: fs.existsSync(usbloc + 'idProduct') && fs.readFileSync(usbloc + 'idProduct', 'utf-8').replace(/^\s+|\s+$/g, '')
+		}
+	});
+
+	console.log(modems);
 });
