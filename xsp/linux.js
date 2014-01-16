@@ -56,6 +56,7 @@ function readdirRecursive (baseDir, fn) {
 }
 
 readdirRecursive('/sys/devices', function (err, path) {
+	console.log(path);
 	if (path === null) {
 		console.log('done');
 	}
