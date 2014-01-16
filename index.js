@@ -1,7 +1,7 @@
 var ref = require('ffi-shyp/ref');
 var ArrayType = require('ffi-shyp/ref-array');
 var ffi = require('ffi-shyp/ffi');
-var Struct = require('ffi-shyp/ref-struct');
+var StructType = require('ffi-shyp/ref-struct');
 var path = require('path')
 
 var sp_port = ref.types.void; // ignore layout
@@ -11,6 +11,20 @@ var sp_portPtrPtrPtr = ref.refType(sp_portPtrPtr);
 var PortArray = ArrayType(sp_portPtr)
 
 var stringPtr = ref.refType(ref.types.CString);
+
+var strbuf = ArrayType(ref.types.char, 1024);
+var ListResultItem = StructType({
+	comName: strbuf,
+	manufacturer: strbuf,
+	serialNumber: strbuf,
+	pnpId: strbuf,
+	locationId: strbuf,
+	vendorId: strbuf,
+	productId: strbuf
+})
+var ListResultItemPtr = ref.refType(ListResultItem);
+var ListResultItemPtrPtr = ref.refType(ListResultItemPtr);
+var ListResultItemArray = ArrayType(ListResultItemPtr)
 
 var
 
@@ -183,8 +197,10 @@ var sp = ffi.Library(path.join(path.dirname(require('bindings-shyp')({ bindings:
   'sp_set_rts': [ 'int', [ sp_portPtr, 'int' ]],
   'sp_set_cts': [ 'int', [ sp_portPtr, 'int' ]],
   'sp_set_dtr': [ 'int', [ sp_portPtr, 'int' ]],
-  'sp_set_dsr': [ 'int', [ sp_portPtr, 'int' ]]
+  'sp_set_dsr': [ 'int', [ sp_portPtr, 'int' ]],
   
+  // xserialport
+  'xsp_list_ports': [ ListResultItemPtrPtr, [] ]
 });
 
 function getPortName (port) {
@@ -206,10 +222,36 @@ function getPortName (port) {
 var exec = require('child_process').exec;
 
 exports.list = function (next) {
-	if (process.platform == 'darwin') {
+	if (process.platform == 'darwin' || process.platform == 'win32') {
+
+		var ports = sp.xsp_list_ports();
+		// var list = ListResultItemArray.untilZeros(ports.deref());
+		var list = new ListResultItemArray(ref.reinterpretUntilZeros(ports, ref.types.Object.size))
+		for (var i = 0; i < list.length; i++) {
+			var res = list[i];
+			var modem = {
+				path: ref.readCString(res.deref().comName.buffer),
+				manufacturer: ref.readCString(res.deref().manufacturer.buffer),
+				serialNumber: ref.readCString(res.deref().serialNumber.buffer),
+				pnpId: ref.readCString(res.deref().pnpId.buffer),
+				locationId: ref.readCString(res.deref().locationId.buffer).replace(/^0x/, '').toLowerCase(),
+				vendorId: ref.readCString(res.deref().vendorId.buffer).replace(/^0x/, '').toLowerCase(),
+				productId: ref.readCString(res.deref().productId.buffer).replace(/^0x/, '').toLowerCase()
+			};
+			console.log(modem);
+		}
+//     struct ListResultItem **res = xsp_list_ports();
+//     struct ListResultItem *ptr;
+//     for (int i = 0; (ptr = res[i++]) != NULL; ) {
+//         printf("COM: %s (%s:%s) Serial: %s\n", ptr->comName, ptr->vendorId, ptr->productId, ptr->serialNumber);
+//     }
+//     xsp_free_ports_list(res);
+//     printf("--> done\n");
+//     return 0;
+// }
 		next(null, []);
-	} else if (process.platform == 'windows') {
-		next(null, []);
+
+
 	} else if (process.platform == 'linux') {
 		// linux
 		exec('find /sys/devices | grep usb | grep \"tty\\w\\+$\"', function (err, stdout, stderr) {
@@ -227,8 +269,8 @@ exports.list = function (next) {
 					serialNumber: '',
 					pnpId: '',
 					locationId: '',
-					vendorId: fs.existsSync(usbloc + 'idVendor') && fs.readFileSync(usbloc + 'idVendor', 'utf-8').replace(/^\s+|\s+$/g, ''),
-					productId: fs.existsSync(usbloc + 'idProduct') && fs.readFileSync(usbloc + 'idProduct', 'utf-8').replace(/^\s+|\s+$/g, '')
+					vendorId: fs.existsSync(usbloc + 'idVendor') && fs.readFileSync(usbloc + 'idVendor', 'utf-8').replace(/^\s+|\s+$/g, '').replace(/^0x/, '').toLowerCase(),
+					productId: fs.existsSync(usbloc + 'idProduct') && fs.readFileSync(usbloc + 'idProduct', 'utf-8').replace(/^\s+|\s+$/g, '').replace(/^0x/, '').toLowerCase()
 				}
 			});
 

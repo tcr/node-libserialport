@@ -1,3 +1,5 @@
+#include "libserialport.h"
+
 #include <list>
 #include <string>
 #include <stdio.h>
@@ -328,7 +330,7 @@ static stDeviceListItem* GetSerialDevices()
 }
 
 
-struct ListResultItem ** xsp_list_ports ()
+API struct ListResultItem ** xsp_list_ports ()
 {
   struct ListResultItem **result = (struct ListResultItem **) calloc(1, sizeof(struct ListResultItem));
   size_t result_len = 0;
@@ -378,12 +380,14 @@ struct ListResultItem ** xsp_list_ports ()
 
   }
 
+  printf("----> %p\n", *result);
+
   return result;
 }
 
 #elif defined(WIN32)
 
-struct ListResultItem ** xsp_list_ports ()
+API struct ListResultItem ** xsp_list_ports ()
 {
   struct ListResultItem **result = (struct ListResultItem **) calloc(1, sizeof(struct ListResultItem));
   size_t result_len = 0;
@@ -467,7 +471,7 @@ struct ListResultItem ** xsp_list_ports ()
 
 #else
 
-struct ListResultItem ** xsp_list_ports ()
+API struct ListResultItem ** xsp_list_ports ()
 {
   struct ListResultItem **result = (struct ListResultItem **) calloc(1, sizeof(struct ListResultItem));
   return result;
@@ -476,7 +480,7 @@ struct ListResultItem ** xsp_list_ports ()
 #endif
 
 
-int xsp_free_ports_list (struct ListResultItem **res)
+API int xsp_free_ports_list (struct ListResultItem **res)
 {
     struct ListResultItem *ptr;
     for (int i = 0; (ptr = res[i++]) != NULL; ) {
@@ -486,13 +490,13 @@ int xsp_free_ports_list (struct ListResultItem **res)
     return 0;
 }
 
-int main (void) {
-    struct ListResultItem **res = xsp_list_ports();
-    struct ListResultItem *ptr;
-    for (int i = 0; (ptr = res[i++]) != NULL; ) {
-        printf("COM: %s (%s:%s) Serial: %s\n", ptr->comName, ptr->vendorId, ptr->productId, ptr->serialNumber);
-    }
-    xsp_free_ports_list(res);
-    printf("--> done\n");
-    return 0;
-}
+// int main (void) {
+//     struct ListResultItem **res = xsp_list_ports();
+//     struct ListResultItem *ptr;
+//     for (int i = 0; (ptr = res[i++]) != NULL; ) {
+//         printf("COM: %s (%s:%s) Serial: %s\n", ptr->comName, ptr->vendorId, ptr->productId, ptr->serialNumber);
+//     }
+//     xsp_free_ports_list(res);
+//     printf("--> done\n");
+//     return 0;
+// }
