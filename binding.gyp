@@ -6,7 +6,6 @@
         'defines': [ 'DEBUG', '_DEBUG' ],
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'CompileAs': 2,
             'RuntimeLibrary': 0, # shared debug
           },
         },
@@ -15,7 +14,6 @@
         'defines': [ 'NDEBUG' ],
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'CompileAs': 2,
             'RuntimeLibrary': 1, # shared release
           },
         },
@@ -41,6 +39,22 @@
   },
 
   'targets': [
+    # disphelper
+    {
+      'target_name': 'disphelper',
+      'type': 'static_library',
+      'sources': [
+        'dummy.cc'
+      ],
+      'conditions': [
+        ['OS=="win"', {
+          'sources': [
+            'disphelper.c'
+          ]
+        }]
+      ]
+    },
+
     # libserialport
     {
       'target_name': 'serialport',
@@ -48,14 +62,39 @@
       'type': 'shared_library',
       'sources': [
         'serialport.c',
+        'xserialport.cc'
       ],
+      'msvs_settings': {
+        'VCCLCompilerTool': {
+          'CompileAs': 2
+        }
+      },
       'conditions': [
         ['OS=="linux"', {
           'sources': [
             'linux_termios.c'
           ],
+          'libraries': [
+            '-ludev'
+          ],
+          'defines': [
+            'HAVE_LIBUDEV=1'
+          ]
+        }],
+        ['OS=="win"', {
+          'dependencies': [
+            'disphelper'
+          ]
         }]
-      ],
+      ]
+    },
+
+    # dummy
+    {
+      'target_name': 'binding',
+      'sources': [
+        'dummy.cc'
+      ]
     }
   ]
 }
