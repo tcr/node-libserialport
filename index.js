@@ -221,7 +221,7 @@ exports.open = function (path) {
 	var stream = new (require('stream').Duplex);
 	stream._write = function (data, encoding, next) {
 		while (true) {
-			var num = sp.sp_nonblocking_write(port, data, data.length);
+			var num = sp.sp_blocking_write(port, data, data.length, 0);
 			if (num < data.length) {
 				data = data.slice(num);
 			} else {
