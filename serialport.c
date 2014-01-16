@@ -51,7 +51,6 @@
 #endif
 #ifdef __linux__
 #ifdef HAVE_LIBUDEV
- #error "OH SHIT"
 #include "libudev.h"
 #endif
 #ifndef __ANDROID__

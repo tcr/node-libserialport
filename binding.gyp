@@ -56,6 +56,9 @@
           ],
           'libraries': [
             '-ludev'
+          ],
+          'defines': [
+            'HAVE_LIBUDEV'
           ]
         }]
       ],
