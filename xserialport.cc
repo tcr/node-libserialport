@@ -5,7 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/param.h>
+
+#define MAXPATHLEN 1024
 
 struct ListResultItem {
   char comName[MAXPATHLEN];
