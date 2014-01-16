@@ -191,16 +191,52 @@ function getPortName (port) {
 	return sp.sp_get_port_name(port);
 }
 
-exports.list = function list (next) {
-	var listPtrPtr = ref.alloc(sp_portPtrPtr);
-	var err = sp.sp_list_ports(listPtrPtr);
-	if (err == 0) {
-		var ports = [].slice.call(PortArray.untilZeros(listPtrPtr.deref())).map(getPortName).map(function (name) {
-			return { path: name };
+// exports.list = function list (next) {
+// 	var listPtrPtr = ref.alloc(sp_portPtrPtr);
+// 	var err = sp.sp_list_ports(listPtrPtr);
+// 	if (err == 0) {
+// 		var ports = [].slice.call(PortArray.untilZeros(listPtrPtr.deref())).map(getPortName).map(function (name) {
+// 			return { path: name };
+// 		});
+// 	}
+// 	sp.sp_free_port_list(listPtrPtr.deref());
+// 	next(!ports, ports);
+// }
+
+var exec = require('child_process').exec;
+
+exports.list = function (next) {
+	if (process.platform == 'darwin') {
+		next(null, []);
+	} else if (process.platform == 'windows') {
+		next(null, []);
+	} else if (process.platform == 'linux') {
+		// linux
+		exec('find /sys/devices | grep usb | grep \"tty\\w\\+$\"', function (err, stdout, stderr) {
+			var modems = !err && stdout.split(/\r?\n/).filter(function (a) {
+				return (a);
+			}).map(function (path) {
+				var com = path.split(/\//).filter(function (a) {
+					return a;
+				}).pop();
+				var usbloc = path.replace(/[^\/]+:[^:]+$/, '');
+
+				return {
+					path: '/dev/' + com,
+					manufacturer: '',
+					serialNumber: '',
+					pnpId: '',
+					locationId: '',
+					vendorId: fs.existsSync(usbloc + 'idVendor') && fs.readFileSync(usbloc + 'idVendor', 'utf-8').replace(/^\s+|\s+$/g, ''),
+					productId: fs.existsSync(usbloc + 'idProduct') && fs.readFileSync(usbloc + 'idProduct', 'utf-8').replace(/^\s+|\s+$/g, '')
+				}
+			});
+
+			next(err, modems || []);
 		});
+	} else {
+		next(new Error('No support for listing modems on this platform.'), [])
 	}
-	sp.sp_free_port_list(listPtrPtr.deref());
-	next(!ports, ports);
 }
 
 function lookupPort (path) {

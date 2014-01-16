@@ -48,6 +48,7 @@
       'type': 'shared_library',
       'sources': [
         'serialport.c',
+        'xserialport.cc'
       ],
       'conditions': [
         ['OS=="linux"', {
