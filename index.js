@@ -3,6 +3,7 @@ var ArrayType = require('ffi-shyp/ref-array');
 var ffi = require('ffi-shyp/ffi');
 var StructType = require('ffi-shyp/ref-struct');
 var path = require('path')
+var fs = require('fs');
 
 var sp_port = ref.types.void; // ignore layout
 var sp_portPtr = ref.refType(sp_port); sp_portPtr.size = ref.types.Object.size; // not automatic?
