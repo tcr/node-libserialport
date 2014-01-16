@@ -425,8 +425,8 @@ API struct ListResultItem ** xsp_list_ports ()
         result_len += 1;
 
         strncpy(resultItem->comName, comname, MAXPATHLEN);
-        strncpy(resultItem->manufacturer, manufacturer, MAXPATHLEN);
-        strncpy(resultItem->pnpId, pnpId, MAXPATHLEN);
+        strncpy(resultItem->manufacturer, manu, MAXPATHLEN);
+        strncpy(resultItem->pnpId, pnpid, MAXPATHLEN);
         dhFreeString(manu);
       }
           
