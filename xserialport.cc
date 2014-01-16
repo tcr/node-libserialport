@@ -386,7 +386,7 @@ API struct ListResultItem ** xsp_list_ports ()
 
 #elif defined(WIN32)
 
-#include "disphelpher.h"
+#include "disphelper.h"
 
 API struct ListResultItem ** xsp_list_ports ()
 {
