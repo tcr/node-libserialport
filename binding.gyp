@@ -42,7 +42,7 @@
     # disphelper
     {
       'target_name': 'disphelper',
-      'type': 'shared_library',
+      'type': 'static_library',
       'conditions': [
         ['OS=="win"', {
           'sources': [
