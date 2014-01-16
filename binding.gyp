@@ -61,10 +61,14 @@
             'HAVE_LIBUDEV=1'
           ]
         }]
-      ],
-      'dependencies': [
-        'modules/ffi/binding.gyp:ffi_bindings',
-        'modules/ref/binding.gyp:binding'
+      ]
+    },
+
+    # dummy
+    {
+      'target_name': 'binding',
+      'sources': [
+        'dummy.cc'
       ]
     }
   ]
