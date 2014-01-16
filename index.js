@@ -247,13 +247,13 @@ exports.list = function (next) {
 				return;
 			}
 			if (!modem.vendorId) {
-				modem.vendorId = (modem.pnpId.match(/VID_([0-9A-F])+/i) || ['', ''])[1].replace(/^0x/, '').toLowerCase()
+				modem.vendorId = (modem.pnpId.match(/VID_([0-9A-F]+)/i) || ['', ''])[1].replace(/^0x/, '').toLowerCase()
 			}
 			if (!modem.productId) {
-				modem.productId = (modem.pnpId.match(/PID_([0-9A-F])+/i) || ['', ''])[1].replace(/^0x/, '').toLowerCase()
+				modem.productId = (modem.pnpId.match(/PID_([0-9A-F]+)/i) || ['', ''])[1].replace(/^0x/, '').toLowerCase()
 			}
 			if (!modem.serialNumber) {
-				modem.serialNumber = modem.pnpId.split('\\\\').pop();
+				modem.serialNumber = modem.pnpId.split('\\').pop();
 			}
 		});
 
