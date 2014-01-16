@@ -171,7 +171,14 @@ var
 
 	_dummy = null;
 
-var sp = ffi.Library(path.join(path.dirname(require('bindings-shyp')({ bindings: 'binding', path: true })), (process.platform == 'linux' ? 'lib.target/' : '' ) + 'libserialport'), {
+
+var libpath = path.dirname(require('bindings-shyp')({ bindings: 'binding', path: true }));
+// Linux sometimes includes library in lib.target, sometimes
+var libfile = fs.existsSync(path.join(libpath, 'lib.target/libserialport'))
+	? path.join(libpath, 'lib.target/libserialport')
+	: path.join(libpath, 'libserialport');
+
+var sp = ffi.Library(libfile, {
   // Port enumeration
   'sp_list_ports': [ 'int', [ sp_portPtrPtrPtr ] ],
   'sp_free_port_list':	[ 'void', [ sp_portPtrPtr ] ],
