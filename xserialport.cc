@@ -380,8 +380,6 @@ API struct ListResultItem ** xsp_list_ports ()
 
   }
 
-  printf("----> %p\n", *result);
-
   return result;
 }
 

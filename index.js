@@ -201,7 +201,8 @@ var sp = ffi.Library(path.join(path.dirname(require('bindings-shyp')({ bindings:
   'sp_set_dsr': [ 'int', [ sp_portPtr, 'int' ]],
   
   // xserialport
-  'xsp_list_ports': [ ListResultItemPtrPtr, [] ]
+  'xsp_list_ports': [ ListResultItemPtrPtr, [] ],
+  'xsp_free_ports_list': [ 'int', [ ListResultItemPtrPtr ]]
 });
 
 function getPortName (port) {
@@ -227,30 +228,20 @@ exports.list = function (next) {
 
 		var ports = sp.xsp_list_ports();
 		// var list = ListResultItemArray.untilZeros(ports.deref());
-		var list = new ListResultItemArray(ref.reinterpretUntilZeros(ports, ref.types.Object.size))
-		for (var i = 0; i < list.length; i++) {
-			var res = list[i];
-			var modem = {
-				path: ref.readCString(res.deref().comName.buffer),
-				manufacturer: ref.readCString(res.deref().manufacturer.buffer),
-				serialNumber: ref.readCString(res.deref().serialNumber.buffer),
-				pnpId: ref.readCString(res.deref().pnpId.buffer),
-				locationId: ref.readCString(res.deref().locationId.buffer).replace(/^0x/, '').toLowerCase(),
-				vendorId: ref.readCString(res.deref().vendorId.buffer).replace(/^0x/, '').toLowerCase(),
-				productId: ref.readCString(res.deref().productId.buffer).replace(/^0x/, '').toLowerCase()
-			};
-			console.log(modem);
-		}
-//     struct ListResultItem **res = xsp_list_ports();
-//     struct ListResultItem *ptr;
-//     for (int i = 0; (ptr = res[i++]) != NULL; ) {
-//         printf("COM: %s (%s:%s) Serial: %s\n", ptr->comName, ptr->vendorId, ptr->productId, ptr->serialNumber);
-//     }
-//     xsp_free_ports_list(res);
-//     printf("--> done\n");
-//     return 0;
-// }
-		next(null, []);
+		var list = [].slice.call(new ListResultItemArray(ref.reinterpretUntilZeros(ports, ref.types.Object.size)))
+			.map(function (res) {
+				return {
+					path: ref.readCString(res.deref().comName.buffer),
+					manufacturer: ref.readCString(res.deref().manufacturer.buffer),
+					serialNumber: ref.readCString(res.deref().serialNumber.buffer),
+					pnpId: ref.readCString(res.deref().pnpId.buffer),
+					locationId: ref.readCString(res.deref().locationId.buffer).replace(/^0x/, '').toLowerCase(),
+					vendorId: ref.readCString(res.deref().vendorId.buffer).replace(/^0x/, '').toLowerCase(),
+					productId: ref.readCString(res.deref().productId.buffer).replace(/^0x/, '').toLowerCase()
+				};
+			});
+		sp.xsp_free_ports_list(ports);
+		next(null, list);
 
 
 	} else if (process.platform == 'linux') {
