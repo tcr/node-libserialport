@@ -61,6 +61,11 @@
           'defines': [
             'HAVE_LIBUDEV=1'
           ]
+        }],
+        ['OS=="win"', {
+          'sources': [
+            'disphelper.c'
+          ]
         }]
       ]
     },

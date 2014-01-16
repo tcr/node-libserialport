@@ -386,6 +386,8 @@ API struct ListResultItem ** xsp_list_ports ()
 
 #elif defined(WIN32)
 
+#include "disphelpher.h"
+
 API struct ListResultItem ** xsp_list_ports ()
 {
   struct ListResultItem **result = (struct ListResultItem **) calloc(1, sizeof(struct ListResultItem));
