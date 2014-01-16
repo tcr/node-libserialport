@@ -424,9 +424,9 @@ API struct ListResultItem ** xsp_list_ports ()
         result[result_len] = resultItem;
         result_len += 1;
 
-        resultItem->comName = (char *) comname;
-        resultItem->manufacturer = (char *) manu;
-        resultItem->pnpId = (char *) pnpid;
+        strncpy(resultItem->comName, comname, MAXPATHLEN);
+        strncpy(resultItem->manufacturer, manufacturer, MAXPATHLEN);
+        strncpy(resultItem->pnpId, pnpId, MAXPATHLEN);
         dhFreeString(manu);
       }
           
