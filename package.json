@@ -9,7 +9,7 @@
   "description": "Cross-platform binding for libserialport, access serial ports",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tap test/*.js",
     "install": "node shyp-blacklist.js win32-x64 win32-ia32 darwin-x64 || node-gyp rebuild"
   },
   "repository": {
@@ -25,5 +25,8 @@
   "dependencies": {
     "bindings-shyp": "~0.2.0",
     "ffi-shyp": "~0.1.0"
+  },
+  "devDependencies": {
+    "tape": "~2.3.2"
   }
 }
