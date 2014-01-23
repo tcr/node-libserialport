@@ -174,7 +174,7 @@ var
 
 var libpath = path.dirname(require('bindings-shyp')({ bindings: 'binding', path: true }));
 // Linux sometimes includes library in lib.target, sometimes
-var libfile = fs.existsSync(path.join(libpath, 'lib.target/libserialport'))
+var libfile = fs.existsSync(path.join(libpath, 'lib.target/libserialport.so'))
 	? path.join(libpath, 'lib.target/libserialport')
 	: path.join(libpath, 'libserialport');
 
