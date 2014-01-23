@@ -243,8 +243,8 @@ exports.list = function (next) {
 					serialNumber: ref.readCString(res.deref().serialNumber.buffer),
 					pnpId: ref.readCString(res.deref().pnpId.buffer),
 					locationId: ref.readCString(res.deref().locationId.buffer).replace(/^0x/, '').toLowerCase(),
-					vendorId: ref.readCString(res.deref().vendorId.buffer).replace(/^0x/, '').toLowerCase(),
-					productId: ref.readCString(res.deref().productId.buffer).replace(/^0x/, '').toLowerCase()
+					vendorId: parseInt(ref.readCString(res.deref().vendorId.buffer).replace(/^0x/, '').toLowerCase(), 16),
+					productId: parseInt(ref.readCString(res.deref().productId.buffer).replace(/^0x/, '').toLowerCase(), 16)
 				};
 			});
 		
@@ -254,10 +254,10 @@ exports.list = function (next) {
 				return;
 			}
 			if (!modem.vendorId) {
-				modem.vendorId = (modem.pnpId.match(/VID_([0-9A-F]+)/i) || ['', ''])[1].replace(/^0x/, '').toLowerCase()
+				modem.vendorId = parseInt((modem.pnpId.match(/VID_([0-9A-F]+)/i) || ['', ''])[1].replace(/^0x/, '').toLowerCase(), 16)
 			}
 			if (!modem.productId) {
-				modem.productId = (modem.pnpId.match(/PID_([0-9A-F]+)/i) || ['', ''])[1].replace(/^0x/, '').toLowerCase()
+				modem.productId = parseInt((modem.pnpId.match(/PID_([0-9A-F]+)/i) || ['', ''])[1].replace(/^0x/, '').toLowerCase(), 16)
 			}
 			if (!modem.serialNumber) {
 				modem.serialNumber = modem.pnpId.split('\\').pop();
@@ -285,8 +285,8 @@ exports.list = function (next) {
 					serialNumber: '',
 					pnpId: '',
 					locationId: '',
-					vendorId: fs.existsSync(usbloc + 'idVendor') && fs.readFileSync(usbloc + 'idVendor', 'utf-8').replace(/^\s+|\s+$/g, '').replace(/^0x/, '').toLowerCase(),
-					productId: fs.existsSync(usbloc + 'idProduct') && fs.readFileSync(usbloc + 'idProduct', 'utf-8').replace(/^\s+|\s+$/g, '').replace(/^0x/, '').toLowerCase()
+					vendorId: parseInt(fs.existsSync(usbloc + 'idVendor') && fs.readFileSync(usbloc + 'idVendor', 'utf-8').replace(/^\s+|\s+$/g, '').replace(/^0x/, '').toLowerCase(), 16),
+					productId: parseInt(fs.existsSync(usbloc + 'idProduct') && fs.readFileSync(usbloc + 'idProduct', 'utf-8').replace(/^\s+|\s+$/g, '').replace(/^0x/, '').toLowerCase(), 16)
 				}
 			});
 

@@ -1,6 +1,6 @@
 {
   "name": "libserialport",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "optionalDependencies": {
     "libserialport-shyp-win32-ia32": "0.2.0",
     "libserialport-shyp-win32-x64": "0.2.0",
