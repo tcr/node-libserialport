@@ -207,6 +207,8 @@ var sp = ffi.Library(libfile, {
   'sp_set_dtr': [ 'int', [ sp_portPtr, 'int' ]],
   'sp_set_dsr': [ 'int', [ sp_portPtr, 'int' ]],
   
+  'sp_set_baudrate': [ 'int', [ sp_portPtr, 'int' ]],
+  
   // xserialport
   'xsp_list_ports': [ ListResultItemPtrPtr, [] ],
   'xsp_free_ports_list': [ 'int', [ ListResultItemPtrPtr ]]
@@ -311,7 +313,7 @@ function lookupPort (path) {
 	return null;
 }
 
-exports.open = function (path) {
+exports.open = function (path, opts) {
 	var stream = new (require('stream').Duplex);
 	stream._write = function (data, encoding, next) {
 		while (true) {
@@ -334,6 +336,7 @@ exports.open = function (path) {
 	var ret = sp.sp_open(port, SP_MODE_READ | SP_MODE_WRITE);
 	// console.log('open', ret);
 
+	opts && opts.baudRate && sp.sp_set_baudrate(port, opts.baudRate);
 	sp.sp_set_flowcontrol(port, SP_FLOWCONTROL_RTSCTS);
 	sp.sp_set_rts(port, SP_RTS_ON);
 	sp.sp_set_dtr(port, SP_DTR_ON);
