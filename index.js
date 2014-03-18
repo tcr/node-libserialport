@@ -317,11 +317,11 @@ exports.open = function (path, opts) {
 	var stream = new (require('stream').Duplex);
 	stream._write = function (data, encoding, next) {
 		while (true) {
-			var num = sp.sp_blocking_write(port, data, data.length, 0);
-			if (num < data.length) {
-				data = data.slice(num);
-			} else {
+			var num = sp.sp_blocking_write(port, data, data.length, 100);
+			if (num < 0 || num >= data.length) {
 				break;
+			} else {
+				data = data.slice(num);
 			}
 		}
 		next(null);
